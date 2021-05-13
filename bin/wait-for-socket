@@ -12,9 +12,9 @@ Clamp do
 
   def execute
     $stdout.sync = true
-    puts "Waiting for #{description} to become available at #{address}:#{port_int}"
+    puts "Waiting for #{description} to become available at #{address}:#{port}"
     loop do
-      if socket_reachable?(address, port)
+      if socket_reachable?
         puts
         puts "#{description} ready"
         break
@@ -27,8 +27,8 @@ Clamp do
 
   private
 
-  def socket_reachable?(hostname, port)
-    Socket.tcp(hostname, port, connect_timeout: 2) {}
+  def socket_reachable?
+    Socket.tcp(address, port, connect_timeout: 2) {}
     true
   rescue StandardError => e
     false
