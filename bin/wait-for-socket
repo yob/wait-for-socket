@@ -8,6 +8,7 @@ Clamp do
   option %w[--description -d], "<service name>", "description of the service we're waiting for", required: true
   option %w[--address -a], "<host or IP>", "the hostname or IP to monitor", required: true
   option %w[--port -p], "<port>", "the port number to monitor", required: true
+  option %w[--interval -i], "<seconds>", "the number of seconds to wait between polling attempts", default: 2, &method(:Float)
 
   def execute
     $stdout.sync = true
@@ -19,7 +20,7 @@ Clamp do
         break
       else
         $stderr.write "."
-        sleep 2
+        sleep interval
       end
     end
   end
