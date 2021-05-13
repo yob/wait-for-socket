@@ -24,9 +24,9 @@ Clamp do
     $stdout.sync = true
     signal_usage_error "You must supply either: both address and port, or a URL" unless !!url ^ (address && port)
     puts "Waiting for #{description} to become available at #{destination}"
-    loop do
+    (1..).each do |attempt|
       if ready?
-        puts
+        puts unless attempt == 1
         puts "#{description} ready"
         break
       else
