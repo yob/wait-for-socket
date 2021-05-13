@@ -47,7 +47,7 @@ Clamp do
   end
 
   def socket_reachable?
-    Socket.tcp(address, port_int, connect_timeout: TIMEOUT_S) {}
+    Socket.tcp(address, port, connect_timeout: TIMEOUT_S) {}
     true
   rescue StandardError => e
     false
