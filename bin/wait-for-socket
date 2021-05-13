@@ -5,9 +5,9 @@ require 'socket'
 
 Clamp do
 
-  option "--description", "<service name>", "description of the service we're waiting for", required: true
-  option "--address", "<host or IP>", "the hostname or IP to monitor", required: true
-  option "--port", "<port>", "the port number to monitor", required: true
+  option %w[--description -d], "<service name>", "description of the service we're waiting for", required: true
+  option %w[--address -a], "<host or IP>", "the hostname or IP to monitor", required: true
+  option %w[--port -p], "<port>", "the port number to monitor", required: true
 
   def execute
     puts "Waiting for #{description} to become available at #{address}:#{port_int}"
