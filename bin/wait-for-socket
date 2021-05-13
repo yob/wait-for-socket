@@ -10,6 +10,7 @@ Clamp do
   option "--port", "<port>", "the port number to monitor", required: true
 
   def execute
+    $stdout.sync = true
     puts "Waiting for #{description} to become available at #{address}:#{port_int}"
     loop do
       if socket_reachable?(address, port_int)
