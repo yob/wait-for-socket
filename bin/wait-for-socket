@@ -1,20 +1,31 @@
 #!/usr/bin/env ruby
 
 require 'clamp'
+require 'net/http'
 require 'socket'
 
 Clamp do
 
   option %w[--description -d], "<service name>", "Description of the service we're waiting for", default: 'service'
-  option %w[--address -a], "<host or IP>", "The hostname or IP to monitor", required: true
-  option %w[--port -p], "<port>", "The port number to monitor", required: true, &method(:Integer)
+
+  option %w[--address -a], "<host or IP>", "The hostname or IP to monitor"
+  option %w[--port -p], "<port>", "The port number to monitor", &method(:Integer)
+
+  option %w[--url -u], "<URL>", "Make HTTP requests to a URL and wait for a successful HTTP response, rather than just opening a socket. Useful for services that open their port before they're actually ready to handle requests" do |raw_url|
+    url = URI(raw_url)
+    url.scheme ? url : URI("http://#{raw_url}")
+  rescue URI::InvalidURIError => e
+    signal_usage_error e
+  end
+
   option %w[--interval -i], "<seconds>", "The number of seconds to wait between polling attempts", default: 2, &method(:Float)
 
   def execute
     $stdout.sync = true
-    puts "Waiting for #{description} to become available at #{address}:#{port}"
+    signal_usage_error "You must supply either: both address and port, or a URL" unless !!url ^ (address && port)
+    puts "Waiting for #{description} to become available at #{destination}"
     loop do
-      if socket_reachable?
+      if ready?
         puts
         puts "#{description} ready"
         break
@@ -27,11 +38,38 @@ Clamp do
 
   private
 
+  def destination
+    url ? url : "#{address}:#{port}"
+  end
+
+  def ready?
+    url ? http_success? : socket_reachable?
+  end
+
   def socket_reachable?
-    Socket.tcp(address, port, connect_timeout: 2) {}
+    Socket.tcp(address, port_int, connect_timeout: TIMEOUT_S) {}
     true
   rescue StandardError => e
     false
   end
+
+  def http_success?
+    response = Net::HTTP.start(url.host, url.port, net_http_options).get(url)
+    response.is_a?(Net::HTTPSuccess)
+  rescue
+    false
+  end
+
+  def net_http_options
+    {
+      open_timeout: TIMEOUT_S,
+      read_timeout: TIMEOUT_S,
+      write_timeout: TIMEOUT_S,
+      ssl_timeout: TIMEOUT_S,
+      use_ssl: url.scheme == 'https',
+    }
+  end
+
+  TIMEOUT_S = 2
 
 end
