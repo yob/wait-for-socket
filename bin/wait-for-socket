@@ -12,8 +12,7 @@ Clamp do
   option %w[--port -p], "<port>", "The port number to monitor", &method(:Integer)
 
   option %w[--url -u], "<URL>", "Make HTTP requests to a URL and wait for a successful HTTP response, rather than just opening a socket. Useful for services that open their port before they're actually ready to handle requests" do |raw_url|
-    url = URI(raw_url)
-    url.scheme ? url : URI("http://#{raw_url}")
+    raw_url.include?('://') ? URI(raw_url) : URI("http://#{raw_url}")
   rescue URI::InvalidURIError => e
     signal_usage_error e
   end
